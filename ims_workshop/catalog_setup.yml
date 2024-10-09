@@ -1,0 +1,78 @@
+- name: Execute all workshop tasks
+  gather_facts: false
+  hosts: wsc
+  environment: "{{ environment_vars }}"
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: playbooks/1_acbgen.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/2_dfsdf_changes.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/3_dbrc_registration.yml
+
+    # - name: 4.1 - Retrieve estimated size
+    #   ansible.builtin.include_tasks:
+    #     file: playbooks/4_1_raw_retrieve_estimated_size.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/4_1_retrieve_estimated_size.yml
+
+    # - name: 4.2 - Catalog datasets allocation
+    #   ansible.builtin.include_tasks:
+    #     file: playbooks/4_2_allocate_catalog_datasets.yml
+
+    - name: Allocate Catalog data sets
+      ibm.ibm_zos_core.zos_job_submit:
+        src: "{{ USR_HLQ }}.JCL(FOUR2)"
+        location: DATA_SET
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/5_raw_load_catalog.yml
+
+    # - name: 5 - Load Catalog
+    #   ansible.builtin.include_tasks:
+    #     file: playbooks/5_load_catalog.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/6_0_dbrc_list_registered_dbs.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/6_1_dbrc_icoff.yml
+
+    # - name: 6.2 - Take image copy of catalog db (slower)
+    #   ansible.builtin.include_tasks:
+    #     file: playbooks/6_2_image_copy.yml
+
+    - name: 6.3 - List Catalog DB from DBRC to confirm image copy flags
+      ansible.builtin.include_tasks:
+        file: playbooks/6_0_dbrc_list_registered_dbs.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/7_0_list_catalog_content.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/9_1_macb_setup.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/9_2_image_copy.yml
+
+    - ansible.builtin.include_tasks:
+          file: playbooks/9_3_enable_macb.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/10_1_dbdgen.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/10_2_acbgen.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/10_3_load_catalog_stage.yml
+
+    # - name: Activate staging ACBLIB with import defn source(catalog)
+    #   ibm.ibm_zos_ims.ims_command:
+    #     command: IMPORT DEFN SOURCE(CATALOG)
+    #     plex: DEMOD
+    #     route:
+    #       - IMSD

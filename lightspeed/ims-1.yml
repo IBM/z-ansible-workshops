@@ -1,0 +1,11 @@
+- name: Display IMS database features using the ibm.ibm_zos_ims collection
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Issue Display Active command for IMS
+      # Content suggestion provided by Ansible Lightspeed
+      ibm.ibm_zos_ims.ims_command:
+        command: display active
+        plex: "{{ DFS_IMSPlex }}"
+        route: "{{ ROUTE }}"
+      register: result

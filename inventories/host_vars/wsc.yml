@@ -1,0 +1,42 @@
+PYZ: /shared/IBM/cyp/v3r9/pyz
+# ZOAU: /shared/IBM/zoautil  # 1.1.1
+ZOAU: /usr/lpp/IBM/zoautil/  # 1.2.5.6
+
+# PYZ: /u/saucedo/python/usr/lpp/IBM/cyp/v3r12/pyz
+# ZOAU: /u/saucedo/zoau
+
+################################################################################
+# Do not configure, variable substituion will correctly set the
+# variable`ansible_python_interpreter`
+################################################################################
+ansible_python_interpreter: "{{ PYZ }}/bin/python3"
+
+ZOS_USER: "{{ ansible_user | upper }}"
+
+USR_HLQ: "{{ ZOS_USER }}.WORKSHP2"
+SYS_HLQ: IMS.IMSD
+
+SYS_PSBLIB: "{{ SYS_HLQ }}.PSBLIB"
+USR_PSBLIB: "{{ USR_HLQ }}.PSBLIB"
+
+SYS_DBDLIB: "{{ SYS_HLQ }}.DBDLIB"
+USR_DBDLIB: "{{ USR_HLQ }}.DBDLIB"
+
+SYS_ACBLIB: "{{ SYS_HLQ }}.ACBLIB"
+USR_ACBLIB: "{{ USR_HLQ }}.ACBLIB"
+
+SYS_PROCLIB: "{{ SYS_HLQ }}.PROCLIB"
+USR_PROCLIB: "{{ USR_HLQ }}.PROCLIB"
+
+STEPLIB: "{{ SYS_HLQ }}.SDFSRESL"
+
+RESLIB: "{{ SYS_HLQ }}.SDFSRESL"
+
+DFSDF_MEMBER: "{{ USR_PROCLIB }}(DFSDF000)"
+DFSDF_SUFFIX: "000"
+
+BUFFER_POOL_PARAMS: "{{ SYS_PROCLIB }}(DFSVSM0D)"
+
+RECON_1: "{{ USR_HLQ }}.RECON1"
+RECON_2: "{{ USR_HLQ }}.RECON2"
+RECON_3: "{{ USR_HLQ }}.RECON3"

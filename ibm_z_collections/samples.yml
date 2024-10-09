@@ -1,0 +1,72 @@
+---
+- name: z/OS System and IMS Maintenance Tasks
+  hosts: wsc
+  gather_facts: false
+  environment: "{{ environment_vars }}"
+  tasks:
+    - ansible.builtin.debug:
+        var: environment_vars
+
+    - name: Check system status
+      ibm.ibm_zos_core.zos_operator:
+        cmd: 'D A,L'
+      register: system_status
+
+    - name: Display system status
+      debug:
+        var: system_status.content
+
+    - name: Allocate a new dataset
+      ibm.ibm_zos_core.zos_data_set:
+        name: '{{ ansible_user }}.ANSIBLE.TEST'
+        type: pds
+        space_primary: 5
+        space_type: m
+        record_format: fb
+        record_length: 80
+
+    - name: Copy JCL to the new dataset
+      ibm.ibm_zos_core.zos_copy:
+        src: '{{ playbook_dir }}/test_job.jcl'
+        dest: '{{ ansible_user }}.ANSIBLE.TEST(MEMBER1)'
+        remote_src: false
+        force: true
+
+    - name: Submit JCL job
+      ibm.ibm_zos_core.zos_job_submit:
+        src: '{{ ansible_user }}.ANSIBLE.TEST(MEMBER1)'
+        location: DATA_SET
+      register: job_result
+
+    - name: Check job output
+      ibm.ibm_zos_core.zos_job_output:
+        job_id: "{{ job_result.jobs[0].job_id }}"
+      register: job_output
+
+    - name: Display job output
+      ansible.builtin.debug:
+        var: job_output.jobs[0].ddnames
+
+    - name: Check IMS status
+      ibm.ibm_zos_ims.ims_command:
+        command: DIS ACT
+        plex: DEMOT
+        route:
+          - IMST
+      register: ims_status
+
+    - name: Display IMS status
+      ansible.builtin.debug:
+        var: ims_status
+
+    - name: Retrieve IMS Databases
+      ibm.ibm_zos_ims.ims_command:
+        command: DIS DB ALL
+        plex: DEMOT
+        route:
+          - IMST
+      register: ims_dbs
+
+    - name: Display IMS Databases
+      ansible.builtin.debug:
+        var: ims_dbs

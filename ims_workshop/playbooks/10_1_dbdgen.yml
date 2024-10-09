@@ -1,0 +1,13 @@
+- name: Generate new DBD DBFSAMD4
+  ibm.ibm_zos_ims.ims_dbd_gen:
+    sys_lib:
+      - IMS.IMSD.SDFSMAC
+    src: "{{ USR_HLQ }}.JCL(DBFSAMD4)"
+    dbd_name: DBFSAMD4
+    dest: "{{ USR_HLQ }}.DBDLIB"
+    location: DATA_SET
+  register: dbdgen_output
+
+- name: Print DBD Gen output
+  ansible.builtin.debug:
+    var: dbdgen_output

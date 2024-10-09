@@ -1,0 +1,15 @@
+- name: Use dbrc module to retrieve catalog database details
+  ibm.ibm_zos_ims.ims_dbrc:
+    steplib:
+      - "{{ STEPLIB }}"
+    recon1: "{{ RECON_1 }}"
+    recon2: "{{ RECON_2 }}"
+    recon3: "{{ RECON_3 }}"
+    command:
+      - LIST.DB DBD(DFSCD000)
+      - LIST.DB DBD(DFSCX000)
+  register: registered_dbs_output
+
+- name: Display output
+  ansible.builtin.debug:
+    var: registered_dbs_output

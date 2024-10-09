@@ -1,0 +1,29 @@
+- name: (9 - 10) Enable management of ACBs
+  gather_facts: false
+  hosts: wsc
+  environment: "{{ environment_vars }}"
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: playbooks/9_1_macb_setup.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/9_2_image_copy.yml
+
+    - ansible.builtin.include_tasks:
+          file: playbooks/9_3_enable_macb.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/10_1_dbdgen.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/10_2_acbgen.yml
+
+    - ansible.builtin.include_tasks:
+        file: playbooks/10_3_load_catalog_stage.yml
+
+    # - name: Activate staging ACBLIB with import defn source(catalog)
+    #   ibm.ibm_zos_ims.ims_command:
+    #     command: IMPORT DEFN SOURCE(CATALOG)
+    #     plex: DEMOD
+    #     route:
+    #       - IMSD

@@ -1,0 +1,20 @@
+- name: ACBGEN after macb stage setup
+  ibm.ibm_zos_ims.ims_acb_gen:
+    command_input: BUILD
+    acb_lib: "{{ USR_ACBLIB }}"
+    psb_name:
+      - DBFSAMP2
+    build_psb: true
+    psb_lib:
+      - "{{ SYS_PSBLIB }}"
+    dbd_lib:
+      - "{{ SYS_DBDLIB }}"
+    steplib:
+      - "{{ STEPLIB }}"
+    reslib:
+      - "{{ RESLIB }}"
+  register: acbgen_output
+
+- name: Print ACBGEN output
+  ansible.builtin.debug:
+    msg: "{{ acbgen_output.content.split('\n') }}"

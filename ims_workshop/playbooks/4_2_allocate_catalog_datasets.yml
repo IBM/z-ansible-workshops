@@ -1,0 +1,120 @@
+# add tasks inside a block and add a catch to cleanup data sets if something goes wrong
+# highlight and take screenshots of the idcams task, displaying how important indentation and formatting is
+# there is a partition error on the load catalog task / fix clusters definition
+- name: Delete existing datasets
+  ibm.ibm_zos_core.zos_data_set:
+    batch:
+      - name: "{{ USR_HLQ }}.DFSCD000.A00001"
+        state: absent
+        volume: WSLAB1
+      - name: "{{ USR_HLQ }}.DFSCD000.B00001"
+        state: absent
+        volume: WSLAB1
+      - name: "{{ USR_HLQ }}.DFSCD000.C00001"
+        state: absent
+        volume: WSLAB1
+      - name: "{{ USR_HLQ }}.DFSCD000.D00001"
+        state: absent
+        volume: WSLAB1
+      - name: "{{ USR_HLQ }}.DFSCD000.X00001"
+        state: absent
+        volume: WSLAB1
+      - name: "{{ USR_HLQ }}.DFSCD000.L00001"
+        state: absent
+        volume: WSLAB1
+      - name: "{{ USR_HLQ }}.DFSCX000.A00001"
+        state: absent
+        volume: WSLAB1
+
+- name: Define catalog primary datasets
+  register: ds_output
+  ibm.ibm_zos_core.zos_data_set:
+    batch:
+      - name: "{{ USR_HLQ }}.DFSCD000.A00001"
+        state: present
+        space_primary: 50
+        space_secondary: 5
+        space_type: CYL
+        volume: DMEP06
+      - name: "{{ USR_HLQ }}.DFSCD000.B00001"
+        state: present
+        space_primary: 50
+        space_secondary: 5
+        space_type: CYL
+        volume: DMEP07
+      - name: "{{ USR_HLQ }}.DFSCD000.C00001"
+        state: present
+        space_primary: 50
+        space_secondary: 5
+        space_type: CYL
+        volume: DMEP08
+      - name: "{{ USR_HLQ }}.DFSCD000.D00001"
+        state: present
+        space_primary: 50
+        space_secondary: 5
+        space_type: CYL
+        volume: DMEP09
+
+- ansible.builtin.debug:
+    var: ds_output
+
+- name: Define Catalog Index (single partition) and Indirect List Datasets (single ilds)
+  register: cluster_output
+  ibm.ibm_zos_core.zos_mvs_raw:
+    program_name: IDCAMS
+    auth: true
+    dds:
+      - dd_output:
+          dd_name: sysprint
+          return_content:
+            type: text
+      - dd_input:
+          dd_name: SYSIN
+          content:
+            - "  DEFINE CLUSTER( -"
+            - "                NAME({{ USR_HLQ }}.DFSCD000.X00001) -"
+            - "                CYL(50,5) -"
+            - "                REUSE -"
+            - "                VOL(DMEP07) -"
+            - "                FREESPACE(80,10) -"
+            - "                SHAREOPTIONS(3,3) -"
+            - "                SPEED) -"
+            - "            DATA ( -"
+            - "                NAME({{ USR_HLQ }}.DFSCD000.X00001.DATA) -"
+            - "                CISZ(512) -"
+            - "                KEYS(16,5) -"
+            - "                RECORDSIZE(22,22)) -"
+            - "            INDEX ( -"
+            - "                NAME({{ USR_HLQ }}.DFSCD000.X00001.INDEX) -"
+            - "                CISZ(2048) )"
+            - "  DEFINE CLUSTER ( -"
+            - "                NAME ({{ USR_HLQ }}.DFSCD000.L00001) -"
+            - "                CYL(50,5) -"
+            - "                REUSE -"
+            - "                VOL(DMEP07) -"
+            - "                FREESPACE(80,10) -"
+            - "                SHAREOPTIONS(3,3) -"
+            - "                SPEED ) -"
+            - "            DATA ( -"
+            - "                NAME({{ USR_HLQ }}.DFSCD000.L00001.DATA) -"
+            - "                CISZ(512) -"
+            - "                KEYS(9,0) -"
+            - "                RECORDSIZE(50,50)) -"
+            - "            INDEX ( -"
+            - "                NAME({{ USR_HLQ }}.DFSCD000.L00001.INDEX) -"
+            - "                CISZ(2048) )"
+            - "  DEFINE CLUSTER ( -"
+            - "                NAME({{ USR_HLQ }}.DFSCX000.A00001) -"
+            - "                CYL(50,5) -"
+            - "                REUSE -"
+            - "                VOL(DMEP07) -"
+            - "                INDEXED -"
+            - "                KEYS(37,45) -"
+            - "                RECORDSIZE(82,82) -"
+            - "                FREESPACE(80,10) -"
+            - "                SHAREOPTIONS(3,3) -"
+            - "                SPEED) -"
+            - "            DATA (CISZ(4096))"
+
+- ansible.builtin.debug:
+    var: cluster_output

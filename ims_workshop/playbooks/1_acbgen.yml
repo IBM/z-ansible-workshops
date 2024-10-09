@@ -1,0 +1,24 @@
+- name: Run ACBGEN
+  ibm.ibm_zos_ims.ims_acb_gen:
+    command_input: BUILD
+    psb_name:
+      - DFSCPL00
+      - DFSCP000
+      - DFSCP001
+      - DFSCP002
+      - DFSCP003
+    psb_lib:
+      - "{{ SYS_PSBLIB }}"
+    dbd_lib:
+      - "{{ SYS_DBDLIB }}"
+    acb_lib: "{{ USR_ACBLIB }}"
+    reslib:
+      - "{{ RESLIB }}"
+    steplib:
+      - "{{ STEPLIB }}"
+    build_psb: false
+  register: acbgen_output
+
+- name: Display output
+  ansible.builtin.debug:
+    msg: "{{ acbgen_output.content.split('\n') }}"

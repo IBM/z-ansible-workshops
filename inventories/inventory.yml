@@ -1,0 +1,5 @@
+all:
+  hosts:
+    wsc:
+      ansible_host: esysmvs1.wsclab.washington.ibm.com
+      ansible_user: impot18

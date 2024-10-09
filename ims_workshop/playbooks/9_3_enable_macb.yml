@@ -1,0 +1,5 @@
+- name: Update dfsdf to enable managed acbs with the catalog
+  ibm.ibm_zos_core.zos_lineinfile:
+    src: "{{ DFSDF_MEMBER }}"
+    insertafter: 'CATALOG=Y.*'
+    line: 'ACBMGMT=CATALOG'

@@ -1,0 +1,7 @@
+- name: 2 - Update DFSDF member
+  gather_facts: false
+  hosts: wsc
+  environment: "{{ environment_vars }}"
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: playbooks/2_dfsdf_changes.yml

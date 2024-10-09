@@ -1,0 +1,119 @@
+- name: Cleanup backup datasets
+  ibm.ibm_zos_core.zos_data_set:
+    batch:
+      - name: "{{ USR_HLQ }}.DFSCD000.A00002.IC"
+        state: absent
+      - name: "{{ USR_HLQ }}.DFSCD000.B00002.IC"
+        state: absent
+      - name: "{{ USR_HLQ }}.DFSCD000.A00002.IC"
+        state: absent
+      - name: "{{ USR_HLQ }}.DFSCD000.B00002.IC"
+        state: absent
+      - name: "{{ USR_HLQ }}.DFSCD000.A00002.IC"
+        state: absent
+
+- name: Create image copy for catalog database
+  ibm.ibm_zos_core.zos_mvs_raw:
+    program_name: DFSUDMP0
+    parm: ULU,DFSUDMP0
+    dds:
+      - dd_data_set:
+          dd_name: STEPLIB
+          data_set_name: "{{ STEPLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: DFSRESLB
+          data_set_name: "{{ RESLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: PROCLIB
+          data_set_name: "{{ USR_PROCLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON1
+          data_set_name: "{{ RECON_1 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON2
+          data_set_name: "{{ RECON_2 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON3
+          data_set_name: "{{ RECON_3 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: DFSVSAMP
+          data_set_name: "{{ BUFFER_POOL_PARAMS }}"
+          disposition: shr
+      - dd_dummy:
+          dd_name: IEFRDER
+      - dd_data_set:
+          dd_name: DFSUCKPT
+          data_set_name: "{{ ZOS_USER }}.CKPT2"
+          disposition: new
+          volumes: IMSQAW
+          space_type: trk
+          space_primary: 1
+          space_secondary: 1
+      - dd_data_set:
+          dd_name: DMP1
+          data_set_name: "{{ USR_HLQ }}.DFSCD000.A00002.IC"
+          disposition: new
+          space_type: cyl
+          space_primary: 1
+          space_secondary: 1
+      - dd_data_set:
+          dd_name: DMP2
+          data_set_name: "{{ USR_HLQ }}.DFSCD000.B00002.IC"
+          disposition: new
+          space_type: cyl
+          space_primary: 1
+          space_secondary: 1
+      - dd_data_set:
+          dd_name: DMP3
+          data_set_name: "{{ USR_HLQ }}.DFSCD000.C00002.IC"
+          disposition: new
+          space_type: cyl
+          space_primary: 1
+          space_secondary: 1
+      - dd_data_set:
+          dd_name: DMP4
+          data_set_name: "{{ USR_HLQ }}.DFSCD000.D00002.IC"
+          disposition: new
+          space_type: cyl
+          space_primary: 1
+          space_secondary: 1
+      - dd_data_set:
+          dd_name: DMPX
+          data_set_name: "{{ USR_HLQ }}.DFSCX000.A00002.IC"
+          disposition: new
+          space_type: cyl
+          space_primary: 1
+          space_secondary: 1
+      - dd_concat:
+          dd_name: IMS
+          dds:
+            - dd_data_set:
+                data_set_name: "{{ SYS_DBDLIB }}"
+                disposition: shr
+      - dd_output:
+          dd_name: SYSUDUMP
+          return_content:
+            type: text
+      - dd_output:
+          dd_name: SYSPRINT
+          return_content:
+            type: text
+      - dd_input:
+          dd_name: SYSIN
+          content: | 
+            D1 DFSCD000 DFSCD01A DMP1              1000                             
+            D1 DFSCD000 DFSCD01B DMP2              1000                             
+            D1 DFSCD000 DFSCD01C DMP3              1000                             
+            D1 DFSCD000 DFSCD01D DMP4              1000                             
+            D1 DFSCX000 DFSCX01A DMPX              1000                                                                                   
+    verbose: true
+  register: image_copy_output
+
+- ansible.builtin.debug:
+    var: image_copy_output

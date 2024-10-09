@@ -1,0 +1,18 @@
+- name: Turn off image copy flag for catalog databases
+  ibm.ibm_zos_ims.ims_dbrc:
+    command:
+      - CHANGE.DBDS  DBD(DFSCD01) DDN(DFSCD01A) ICOFF
+      - CHANGE.DBDS  DBD(DFSCD01) DDN(DFSCD01B) ICOFF
+      - CHANGE.DBDS  DBD(DFSCD01) DDN(DFSCD01C) ICOFF
+      - CHANGE.DBDS  DBD(DFSCD01) DDN(DFSCD01D) ICOFF
+      - CHANGE.DBDS  DBD(DFSCX01) DDN(DFSCX01A) ICOFF
+    steplib:
+      - "{{ STEPLIB }}"
+    recon1: "{{ RECON_1 }}"
+    recon2: "{{ RECON_2 }}"
+    recon3: "{{ RECON_3 }}"
+  register: dbrc_output
+
+- name: Display output
+  ansible.builtin.debug:
+    var: dbrc_output

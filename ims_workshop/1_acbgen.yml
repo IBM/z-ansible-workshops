@@ -1,0 +1,7 @@
+- name: 1 - Run ACBGEN
+  gather_facts: false
+  hosts: wsc
+  environment: "{{ environment_vars }}"
+  tasks:
+    - ansible.builtin.include_tasks:
+        file: playbooks/1_acbgen.yml

@@ -1,0 +1,31 @@
+# Only works with dynamic allocation of the recon data sets (most common configuration out there). For this workshop this can't used. 
+- name: Initial Load of the IMS Catalog
+  ibm.ibm_zos_ims.ims_catalog_populate:
+    online_batch: false
+    mode: LOAD
+    dfsdf_member: "{{ DFSDF_SUFFIX }}"
+    dbrc: true
+    primary_log_dataset:  # Add ability do specify DUMMY
+      dataset_name: "{{ ZOS_USER }}.TMP.LOG"
+    proclib:
+      - "{{ USR_PROCLIB }}"
+    psb_lib:
+      - "{{ USR_PSBLIB }}"
+      - "{{ SYS_PSBLIB }}"
+    steplib:
+      - "{{ STEPLIB }}"
+    reslib:
+      - "{{ RESLIB }}"
+    dbd_lib:
+      - "{{ USR_DBDLIB }}"
+      - "{{ SYS_DBDLIB }}"
+    acb_lib:
+      - "{{ USR_ACBLIB }}"
+      - "{{ SYS_ACBLIB }}"
+      - IMS.IMSA.ACBLIB
+    buffer_pool_param_dataset: "{{ BUFFER_POOL_PARAMS }}"
+  register: output
+
+- name: Print output
+  ansible.builtin.debug:
+    msg: "{{ output }}"

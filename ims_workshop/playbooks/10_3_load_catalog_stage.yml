@@ -1,0 +1,125 @@
+- name: Cleanup log data sets
+  ibm.ibm_zos_core.zos_data_set:
+    batch:
+      - name: "{{ USR_HLQ }}.IMSLOG"
+        state: absent
+        force: true
+      - name: "{{ USR_HLQ }}.STAGEOUT"
+        state: absent
+        force: true
+
+- name: Allocate log data sets
+  ibm.ibm_zos_core.zos_data_set:
+    batch:
+      - name: "{{ USR_HLQ }}.IMSLOG"
+        state: present
+        type: seq
+        space_type: cyl
+        space_primary: 25
+        space_secondary: 25
+        record_format: vb 
+        block_size: 4096
+        record_length: 4092
+      - name: "{{ USR_HLQ }}.STAGEOUT"
+        state: present
+        type: seq
+
+- name: Create stage data sets for managed ACBs
+  ibm.ibm_zos_core.zos_mvs_raw:
+    program_name: DFS3PU00
+    parm: DLI,DFS3PU00,DFSCP001,,,,,,,,,,,Y,N,,,,,,,,,,,,'DFSDF={{ DFSDF_SUFFIX }}'
+    dds:
+      - dd_data_set:
+          dd_name: DFSRESLB
+          data_set_name: "{{ RESLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: STEPLIB
+          data_set_name: "{{ STEPLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: PROCLIB
+          data_set_name: "{{ USR_PROCLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: DFSVSAMP
+          data_set_name: "{{ BUFFER_POOL_PARAMS }}"
+          disposition: shr
+      - dd_concat:
+          dd_name: IMS
+          dds:
+            - dd_data_set:
+                data_set_name: "{{ SYS_PSBLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: "{{ SYS_DBDLIB }}"
+                disposition: shr
+      - dd_concat:
+          dd_name: IMSACB01
+          dds:
+            - dd_data_set:
+                data_set_name: "{{ USR_ACBLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: IMS.IMSD.ACBLIBA
+                disposition: shr
+            - dd_data_set:
+                data_set_name: IMS.IMSB.ACBLIBA
+                disposition: shr
+      - dd_data_set:
+          dd_name: RECON1
+          data_set_name: "{{ RECON_1 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON2
+          data_set_name: "{{ RECON_2 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON3
+          data_set_name: "{{ RECON_3 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: IEFRDER
+          data_set_name: "{{ USR_HLQ }}.IMSLOG"
+          disposition: shr
+      - dd_dummy:
+          dd_name: IEFRDER2
+      - dd_data_set:
+          dd_name: SYSPRINT
+          data_set_name: "{{ USR_HLQ }}.STAGEOUT"
+          disposition: shr
+      - dd_output:
+          dd_name: SYSABEND
+          return_content:
+            type: text
+        dd_input:
+          dd_name: SYSINP
+          content: MANAGEDACBS=STAGE
+    verbose: true
+  register: load_catalog_output
+  failed_when: '"Attach Exit code: 4 from DFS3PU00" not in load_catalog_output.msg'
+
+- name: Display output
+  block:
+    - name: Retrieve DFS3PU00 output
+      ibm.ibm_zos_core.zos_fetch:
+        src: "{{ USR_HLQ }}.STAGEOUT"
+        dest: "{{ playbook_dir }}/"
+        flat: true
+        ignore_sftp_stderr: true
+
+    - name: Read content
+      ansible.builtin.command:
+        "cat {{ playbook_dir }}/{{ USR_HLQ }}.STAGEOUT"
+      delegate_to: localhost
+      register: dfs3pu00_content
+
+    - name: Print content
+      ansible.builtin.debug:
+        msg: "{{ dfs3pu00_content.stdout_lines }}"
+
+    - name: Cleanup
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/{{ USR_HLQ }}.STAGEOUT"
+        state: absent
+      delegate_to: localhost

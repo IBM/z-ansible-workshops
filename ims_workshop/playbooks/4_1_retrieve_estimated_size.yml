@@ -1,0 +1,38 @@
+# Partial error, wrong results
+- name: Create temporary dataset for primary logs
+  ibm.ibm_zos_core.zos_data_set:
+    name: "{{ ZOS_USER }}.TMP.LOG"
+    state: present
+    type: seq
+
+- name: Estimate space needed by IMS catalog data sets
+  ibm.ibm_zos_ims.ims_catalog_populate:
+    online_batch: false
+    mode: READ
+    dfsdf_member: "{{ DFSDF_SUFFIX }}"
+    dbrc: true
+    primary_log_dataset:
+      dataset_name: "{{ ZOS_USER }}.TMP.LOG"  # temporary dataset as dummy keyword is not available in this module
+    proclib:
+      - "{{ USR_PROCLIB }}"
+    psb_lib:
+      - "{{ USR_PSBLIB }}"
+      - "{{ SYS_PSBLIB }}"
+    steplib:
+      - "{{ STEPLIB }}"
+    reslib:
+      - "{{ RESLIB }}"
+    dbd_lib:
+      - "{{ USR_DBDLIB }}"
+      - "{{ SYS_DBDLIB }}"
+    acb_lib:
+      - "{{ USR_ACBLIB }}"
+      - "{{ SYS_ACBLIB }}"
+      - IMS.IMSA.ACBLIB
+    buffer_pool_param_dataset: "{{ BUFFER_POOL_PARAMS }}"
+  register: output
+  ignore_errors: true
+
+- name: Print output
+  ansible.builtin.debug:
+    msg: "{{ output.content.split('\n') }}"

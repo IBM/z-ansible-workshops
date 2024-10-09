@@ -1,0 +1,36 @@
+- name: (3 - 7) Load catalog and turn image copy flag off
+  gather_facts: false
+  hosts: wsc
+  environment: "{{ environment_vars }}"
+  tasks:
+    - name: 3 - DBRC Registration
+      ansible.builtin.include_tasks:
+        file: playbooks/3_dbrc_registration.yml
+
+    - name: 4.1 - Retrieve estimated size
+      ansible.builtin.include_tasks:
+        file: playbooks/4_1_retrieve_estimated_size.yml
+
+    - name: Allocate Catalog data sets
+      ibm.ibm_zos_core.zos_job_submit:
+        src: "{{ USR_HLQ }}.JCL(FOUR2)"
+        location: DATA_SET
+
+    - name: 5 - Load Catalog
+      ansible.builtin.include_tasks:
+        file: playbooks/5_raw_load_catalog.yml
+
+    - name: 6.0 - List Catalog DB from DBRC
+      ansible.builtin.include_tasks:
+        file: playbooks/6_0_dbrc_list_registered_dbs.yml
+
+    - name: 6.1 - Turn image copy flag off (faster)
+      ansible.builtin.include_tasks:
+        file: playbooks/6_1_dbrc_icoff.yml
+
+    - name: 6.3 - List Catalog DB from DBRC to confirm image copy flags
+      ansible.builtin.include_tasks:
+        file: playbooks/6_0_dbrc_list_registered_dbs.yml
+
+    # - ansible.builtin.include_tasks:
+    #     file: playbooks/7_0_list_catalog_content.yml

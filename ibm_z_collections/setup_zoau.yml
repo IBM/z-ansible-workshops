@@ -1,0 +1,45 @@
+---
+- name: Install Z Open Automation Utilities pax version
+  hosts: ec
+  vars:
+    package_name: zoau-1.3.2.0.pax.Z  # REPLACE WITH YOUR DOWNLOADED FILE
+    zoau_install_dir: /shared/zoau
+  gather_facts: false
+  tasks:
+    - name: Create installation directory
+      ansible.builtin.raw:
+        mkdir -p {{ zoau_install_dir }}
+
+    - name: Copy zoau pax file to remote
+      ibm.ibm_zos_core.zos_copy:
+        src: "{{ playbook_dir }}/packages/{{ package_name }}"
+        dest: "{{ zoau_install_dir }}/{{ package_name }}"
+        is_binary: true
+
+    - name: Extract pax file on target
+      ibm.ibm_zos_core.zos_unarchive:
+        src: "{{ zoau_install_dir }}/{{ package_name }}"
+        remote_src: true
+        format:
+          name: pax
+      register: extract_output
+
+    - ansible.builtin.debug:
+        var: extract_output
+
+    - name: Set extended attributes for apf-authorized utilities
+      ansible.builtin.raw:
+        "extattr +a {{ ZOAU }}/bin/{{ item }}"
+      loop:
+        - ddlshelper
+        - jcanhelper
+        - jlshelper
+        - jsubhelper
+        - mvscmdauthhelper
+        - mvscmdauth
+        - opercmdhelper
+        - pconhelper
+        - pjddhelper
+
+    - ansible.builtin.debug:
+        msg: ZOAU has been successfully installed on the target

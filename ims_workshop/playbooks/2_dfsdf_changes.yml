@@ -1,0 +1,25 @@
+- name: Insert catalog configuration
+  ibm.ibm_zos_core.zos_blockinfile:
+    src: "{{ DFSDF_MEMBER }}"
+    marker: "* {mark} ANSIBLE MANAGED BLOCK *"
+    state: present
+    block: |
+      *--------------------------------------------------------------------*
+      * CATALOG SECTION                                                    *
+      *--------------------------------------------------------------------*
+      <SECTION=CATALOG>
+      CATALOG=Y                   /* CATALOG IS ON  */
+      ALIAS=DFSC
+      RETENTION=(VERSIONS=5,DAYS=365)
+      STORCLAS=BASE
+      MGMTCLAS=STANDARD
+      SMSVOLCT=1
+      SPACEALLOC=(PRIMARY=500 SECONDARY=50)
+      GURCACHE=5
+      <SECTION=DATABASE>
+      DBVERSION=(Y,DBLEVEL=BASE) /*DATABASE VERSIONING ON*/
+  register: dfsdf_output
+
+- name: Display output
+  ansible.builtin.debug:
+    var: dfsdf_output

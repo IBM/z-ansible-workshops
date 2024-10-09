@@ -1,0 +1,72 @@
+- name: Run populate utility in read-only mode to retrieve estimated data set size
+  ibm.ibm_zos_core.zos_mvs_raw:
+    program_name: DFS3PU00
+    parm: DLI,DFS3PU00,DFSCP000,,,,,,,,,,,Y,N,,,,,,,,,,,,'DFSDF=000'
+    dds:
+      - dd_data_set:
+          dd_name: STEPLIB
+          data_set_name: "{{ STEPLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: DFSRESLB
+          data_set_name: "{{ RESLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: PROCLIB
+          data_set_name: "{{ USR_PROCLIB }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: DFSVSAMP
+          data_set_name: "{{ BUFFER_POOL_PARAMS }}"
+          disposition: shr
+      - dd_concat:
+          dd_name: IMS
+          dds:
+            - dd_data_set:
+                data_set_name: "{{ USR_DBDLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: "{{ SYS_DBDLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: "{{ USR_PSBLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: "{{ SYS_PSBLIB }}"
+                disposition: shr
+      - dd_concat:
+          dd_name: IMSACB01
+          dds:
+            - dd_data_set:
+                data_set_name: "{{ USR_ACBLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: "{{ SYS_ACBLIB }}"
+                disposition: shr
+            - dd_data_set:
+                data_set_name: IMS.IMSA.ACBLIB
+                disposition: shr
+      - dd_data_set:
+          dd_name: RECON1
+          data_set_name: "{{ RECON_1 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON2
+          data_set_name: "{{ RECON_2 }}"
+          disposition: shr
+      - dd_data_set:
+          dd_name: RECON3
+          data_set_name: "{{ RECON_3 }}"
+          disposition: shr
+      - dd_dummy:
+          dd_name: IEFRDER
+      - dd_output:
+          dd_name: SYSPRINT
+          return_content:
+            type: text
+    verbose: true
+  register: registered_dbs_output
+
+- name: Display output
+  ansible.builtin.debug:
+    var: registered_dbs_output.dd_names[0].content

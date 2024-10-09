@@ -1,0 +1,26 @@
+---
+- name: Install IBM Open Enterprise Python SDK pax version
+  hosts: ec
+  vars:
+    package_name: HAMB3C0.nonsmpe.pax.Z  # REPLACE WITH YOUR DOWNLOADED FILE
+  gather_facts: false
+  tasks:
+    - name: Create installation directory
+      ansible.builtin.raw:
+        mkdir -p {{ python_install_dir }}
+
+    - name: Copy python pax file onto the z/OS target
+      ansible.builtin.raw:
+        scp {{ playbook_dir }}/packages/{{ package_name }} {{ ansible_user }}@{{ ansible_host }}:{{ python_install_dir }}
+      delegate_to: localhost
+
+    - name: Extract pax file on target
+      ansible.builtin.raw:
+        "cd {{ python_install_dir }} && pax -r -ppAx -f ./{{ package_name }}"
+      register: extract_output
+
+    - ansible.builtin.debug:
+        var: extract_output
+
+    - ansible.builtin.debug:
+        msg: Python has been successfully installed on the target
