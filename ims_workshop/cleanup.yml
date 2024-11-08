@@ -1,0 +1,54 @@
+- name: Cleanup
+  gather_facts: false
+  hosts: wsc
+  environment: "{{ environment_vars }}"
+  tasks:
+    - name: Delete IMS Catalog related datasets and members
+      ibm.ibm_zos_core.zos_data_set:
+        batch:
+          - name: '{{ SYS_HLQ }}.DFSCD000.A00001'
+            state: absent
+          - name: '{{ SYS_HLQ }}.DFSCD000.B00001'
+            state: absent
+          - name: '{{ SYS_HLQ }}.DFSCD000.C00001'
+            state: absent
+          - name: '{{ SYS_HLQ }}.DFSCD000.D00001'
+            state: absent
+          - name: '{{ SYS_HLQ }}.DFSCD000.X00001'
+            state: absent
+          - name: '{{ SYS_HLQ }}.DFSCD000.L00001'
+            state: absent
+          - name: '{{ SYS_HLQ }}.DFSCX000.A00001'
+            state: absent
+          - name: "{{ SYS_HLQ }}.DFSCD000.A00002.IC"
+            state: absent
+          - name: "{{ SYS_HLQ }}.DFSCD000.B00002.IC"
+            state: absent
+          - name: "{{ SYS_HLQ }}.DFSCD000.C00002.IC"
+            state: absent
+          - name: "{{ SYS_HLQ }}.DFSCD000.D00002.IC"
+            state: absent
+          - name: "{{ SYS_HLQ }}.DFSCX000.A00002.IC"
+            state: absent
+          - name: "{{ ZOS_USER }}.CKPT2"
+            state: absent
+
+    - name: Reset DFSDF member
+      ibm.ibm_zos_core.zos_copy:
+        src: "./ims_workshop/dfsdf"
+        dest: "{{ USR_PROCLIB }}(DFSDF{{ DFSDF_SUFFIX }})"
+        force: true
+        remote_src: false
+
+    - name: Unregister catalog dbs from recon
+      ibm.ibm_zos_ims.ims_dbrc:
+        command:
+          - "DELETE.DB DBD(DFSCD000)"
+          - "DELETE.DB DBD(DFSCX000)"
+        steplib:
+            - "{{ STEPLIB }}"
+        dbd_lib: "{{ USR_HLQ }}.DBDLIB"
+        recon1: "{{ USR_HLQ }}.RECON1"
+        recon2: "{{ USR_HLQ }}.RECON2"
+        recon3: "{{ USR_HLQ }}.RECON3"
+      ignore_errors: true
